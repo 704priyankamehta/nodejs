@@ -1,5 +1,7 @@
 const fs = require("fs");
 const path = require("path");
+
+
 let users = [];
 let books=[];
 var lastbookid=0;
@@ -22,7 +24,8 @@ function readData() {
         if (err) {
             return res.status(404, err);
         }
-        users.push(JSON.parse(data));
+        users=JSON.parse(data);
+        userId=users[users.length-1].id;
 
        
     })
@@ -30,18 +33,13 @@ function readData() {
 function writeData(Data){
     fs.writeFile(path.join(__dirname,"data.json"),JSON.stringify(Data),function(err){
         if(err){
-            console.log("EE");
+            console.log("Error");
         };
     })
 }
 function getdata(req, res, next) {
-    fs.readFile(path.join(__dirname, 'data.json'), 'utf-8', function (err, data) {
-        if (err) {
-            return res.status(404, err);
-        }
-        console.log(data);
-        res.status(200).send(data);
-    })
+   res.status(200).send(users);
+    
 }
 const createdata = function (req, res, next) {
     const user = req.body;
@@ -78,13 +76,7 @@ const createdata = function (req, res, next) {
     next();
   }
   const getBookData = function (req, res, next) {
-    fs.readFile(path.join(__dirname, 'data.json'), 'utf-8', function (err, data) {
-        if (err) {
-            return res.status(404, err);
-        }
-        console.log(data);
-        res.status(200).send(data);
-    })
+    return res.status(200).send(books);
   }
   
   
