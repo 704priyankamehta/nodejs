@@ -1,9 +1,10 @@
-const { Mongoose } = require("mongoose");
+const mongoose  = require("mongoose");
+ var Schema=mongoose.Schema;
 
-const users= new mangoose.Schema({
-    name=String
+var user=new Schema({
+    name:String
 });
-const userModel=new Mongoose.model('userModel',users);
+var userModel=mongoose.model('userModel',user);
 
 
 
