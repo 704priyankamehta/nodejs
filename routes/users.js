@@ -6,6 +6,7 @@ var data=require("../module/user");
 router.get('/', data.getdata);
 router.post('/',data.createdata);
 router.put('/:id', data.updatedata);
+router.patch('/:id', data.updatepatchdata);
 router.delete('/:id',data.deletedata);
 router.get("/:id/books", data.getBookData);
 router.post("/:id/books", data.adddata)
