@@ -1,134 +1,116 @@
 const fs = require("fs");
 const path = require("path");
+const userModel = require("../mongo/users");
+//let users = [];
+//let books = [];
+//var lastbookid = 0;
+//var lastId = 0;
 
-
-let users = [];
-let books=[];
-var lastbookid=0;
-var lastId=0;
-readData();
 function getUser(userId) {
 
-    return users.filter(item => item.id === userId);
-  
-  
-  }
-function userExits(userId) {
+  return users.filter(item => item.id === userId);
 
-    return users.findIndex(item => item.id === userId);
-  
-  }
 
-function readData() {
-    fs.readFile(path.join(__dirname, 'data.json'), 'utf-8', function (err, data) {
-        if (err) {
-            return res.status(404, err);
-        }
-        users=JSON.parse(data);
-        userId=users[users.length-1].id;
+}
+async function userExits(userId) {
 
-       
-    })
-};
-function writeData(Data){
-    fs.writeFile(path.join(__dirname,"data.json"),JSON.stringify(Data),function(err){
-        if(err){
-            console.log("Error");
-        };
-    })
+  const users = userModel.find(userId).exec();
+  return users.length;
+
 }
 function getdata(req, res, next) {
-   res.status(200).send(users);
-    
+  userModel.find().exec(function (req, users) {
+    return res.status(200).send(users)
+  })
 }
-const createdata = function (req, res, next) {
-    const user = req.body;
-    
-    user.id = (++lastId).toString();
-    users.push(user);
-    writeData(users);
-    res.send(201, users);
-    next();
+const createdata = async function (req, res, next) {
+  const user = req.body;
+  const newUser = new userModel(user);
+  const response = await newUser.save();
+  // user.id = (++lastId).toString();
+  //users.push(user);
+  //writeData(users);
+  res.send(201, response);
+}
+
+const updatedata = async function (req, res, next) {
+  let user = req.body;
+  const userId = req.params.id;
+  //delete user.id;
+  const userExit = await userExits(userId);
+  if (userExit === -1) {
+    return res.send(404, { message: 'user not exit' });
   }
-  const updatedata = function (req, res, next) {
-    let user = req.body;
-    const userId = req.params.id;
-    delete user.id;
-    const userExit = userExits(userId);
-    if (userExit === -1) {
-      return res.send(404, { message: 'user not exit' });
-    }
-    user = { id: userId, ...user };
-    users[userExit] = user;
-    writeData(users);
-    res.send(200);
-    next();
+  const response = await userModel.findByIdAndUpdate(userId, { $set: user });
+  //user = { id: userId, ...user };
+  //users[userExit] = user;
+  //writeData(users);
+  res.send(200, response);
+}
+
+const deletedata = async function (req, res, next) {
+  const userId = req.params.id;
+  const userExit = await userExits(userId);
+  if (userExit === -1) {
+    return res.send(404, { message: 'user not exit' });
   }
-  const deletedata = function (req, res, next) {
-    const userId = req.params.id;
-    const userExit = userExits(userId);
-    if (userExit === -1) {
-      return res.send(404, { message: 'user not exit' });
-    }
-    users.splice(userExit, 1);
-    writeData(users);
-    res.send(200);
-    next();
+  const response=await userModel.findByIdAndRemove(userId);
+  //users.splice(userExit, 1);
+  //writeData(users);
+  res.send(200);
+  next();
+}
+const getBookData = function (req, res, next) {
+  return res.status(200).send(books);
+}
+const adddata = function (req, res, next) {
+  const userId = req.params.id;
+  const book = req.body;
+  const user = getUser(userId);
+  if (user === undefined) {
+    return res.send(404, { message: "not found" });
   }
-  const getBookData = function (req, res, next) {
-    return res.status(200).send(books);
+  book.id = (++lastbookid).toString();
+  book.userId = userId;
+  books.push(book);
+
+  writeData(books);
+  res.send(201, books);
+  next();
+}
+const updateBooksData = function (req, res, next) {
+  const userId = req.params.id;
+  let book = req.body;
+  delete book.userId;
+  const userExit = books.findIndex(item => item.userId === userId);
+  if (userExit === -1) {
+    return res.send(404, { message: 'user not exit' });
   }
-  
-  
-  const adddata = function (req, res, next) {
-    const userId = req.params.id;
-    const book = req.body;
-    const user = getUser(userId);
-    if (user === undefined) {
-      return res.send(404, { message: "not found" });
-    }
-    book.id = (++lastbookid).toString();
-    book.userId = userId;
-    books.push(book);
-   
-    writeData(books);
-    res.send(201, books);
-    next();
-  
+  book = { userId: userId, ...book };
+  books[userExit] = book;
+  writeData(books)
+  res.send(200);
+  next();
+
+}
+const deleteBookData = function (req, res, next) {
+  const userId = req.params.id;
+  const userExit = books.findIndex(item => item.userId === userId);
+  if (userExit === -1) {
+    return res.send(404, { message: 'user not exit' });
   }
-  const updateBooksData = function (req, res, next) {
-    const userId = req.params.id;
-    let book = req.body;
-    delete book.userId;
-    const userExit = books.findIndex(item => item.userId === userId);
-    if (userExit === -1) {
-      return res.send(404, { message: 'user not exit' });
-    }
-    book = { userId: userId, ...book };
-    books[userExit] = book;
-    writeData(books)
-    res.send(200);
-    next();
-  
-  }
-  const deleteBookData = function (req, res, next) {
-    const userId = req.params.id;
-    const userExit = books.findIndex(item => item.userId === userId);
-    if (userExit === -1) {
-      return res.send(404, { message: 'user not exit' });
-    }
-    books.splice(userExit, 1);
-    writeData(books);
-    res.send(200);
-    next();
-  }
+  books.splice(userExit, 1);
+  writeData(books);
+  res.send(200);
+  next();
+}
 module.exports = {
-    getdata,
-    createdata,
-    updatedata,
-    deletedata,
-    getBookData,
-    adddata,
-    updateBooksData,
-    deleteBookData
+  getdata,
+  createdata,
+  updatedata,
+  deletedata,
+  getBookData,
+  adddata,
+  updateBooksData,
+  deleteBookData
 }
