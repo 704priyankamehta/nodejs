@@ -8,8 +8,5 @@ router.post('/',data.createdata);
 router.put('/:id', data.updatedata);
 router.patch('/:id', data.updatepatchdata);
 router.delete('/:id',data.deletedata);
-router.get("/:id/books", data.getBookData);
-router.post("/:id/books", data.adddata)
-router.put("/:id/books", data.updateBooksData);
-router.delete("/:id/books", data.deleteBookData);
+
 module.exports = router;
